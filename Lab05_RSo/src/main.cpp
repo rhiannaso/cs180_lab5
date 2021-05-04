@@ -60,7 +60,7 @@ public:
 	float gTrans = -3;
 	float sTheta = 0;
 	float eTheta = 0;
-	float hTheta = 0;
+	float wTheta = 0;
 
 	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 	{
@@ -132,6 +132,8 @@ public:
 		prog->addUniform("M");
 		prog->addUniform("MatAmb");
         prog->addUniform("MatDif");
+        prog->addUniform("MatSpec");
+        prog->addUniform("MatShine");
 		prog->addUniform("lightPos");
 		prog->addAttribute("vertPos");
 		prog->addAttribute("vertNor");
@@ -289,20 +291,20 @@ public:
     		case 0: //shiny blue plastic
     			glUniform3f(curS->getUniform("MatAmb"), 0.096, 0.046, 0.095);
     			glUniform3f(curS->getUniform("MatDif"), 0.96, 0.46, 0.95);
-    			//glUniform3f(curS->getUniform("MatSpec"), 0.45, 0.23, 0.45);
-    			//glUniform1f(curS->getUniform("MatShine"), 120.0);
+    			glUniform3f(curS->getUniform("MatSpec"), 0.45, 0.23, 0.45);
+    			glUniform1f(curS->getUniform("MatShine"), 120.0);
     		break;
     		case 1: // flat grey
     			glUniform3f(curS->getUniform("MatAmb"), 0.063, 0.038, 0.1);
     			glUniform3f(curS->getUniform("MatDif"), 0.63, 0.38, 1.0);
-    			//glUniform3f(curS->getUniform("MatSpec"), 0.3, 0.2, 0.5);
-    			//glUniform1f(curS->getUniform("MatShine"), 4.0);
+    			glUniform3f(curS->getUniform("MatSpec"), 0.3, 0.2, 0.5);
+    			glUniform1f(curS->getUniform("MatShine"), 4.0);
     		break;
     		case 2: //brass
     			glUniform3f(curS->getUniform("MatAmb"), 0.004, 0.05, 0.09);
     			glUniform3f(curS->getUniform("MatDif"), 0.04, 0.5, 0.9);
-    			//glUniform3f(curS->getUniform("MatSpec"), 0.02, 0.25, 0.45);
-    			//glUniform1f(curS->getUniform("MatShine"), 27.9);
+    			glUniform3f(curS->getUniform("MatSpec"), 0.02, 0.25, 0.45);
+    			glUniform1f(curS->getUniform("MatShine"), 27.9);
     		break;
   		}
 	}
@@ -327,15 +329,101 @@ public:
 		Model->pushMatrix();
 			Model->loadIdentity();
 			Model->translate(vec3(gTrans, 0, 6));
-			
+			/* draw top cube - aka head */
+			Model->pushMatrix();
+				Model->translate(vec3(0, 1.4, 0));
+				Model->scale(vec3(0.5, 0.5, 0.5));
+				setModel(prog, Model);
+				sphere->draw(prog);
+			Model->popMatrix();
 			//draw the torso with these transforms
 			Model->pushMatrix();
 			  Model->scale(vec3(1.15, 1.35, 1.0));
 			  setModel(prog, Model);
 			  sphere->draw(prog);
 			Model->popMatrix();
-			
+			// draw the upper 'arm' - relative 
+			//note you must change this to include 3 components!
+			Model->pushMatrix();
+			  //place at shoulder
+			  Model->translate(vec3(0.8, 0.8, 0));
+			  //rotate shoulder joint
+			  Model->rotate(sTheta, vec3(0, 0, 1));
+			  //move to shoulder joint
+			  Model->translate(vec3(0.8, 0, 0));
+	
+			    //now draw lower arm - this is INCOMPLETE and you will add a 3rd component
+			  	//right now this is in the SAME place as the upper arm
+			  	Model->pushMatrix();
+                    Model->translate(vec3(0.7, 0, 0)); // place at elbow
+                    Model->rotate(eTheta, vec3(0, 0, 1)); // rotate elbow joint
+                    Model->translate(vec3(0.7, 0, 0)); // move to elbow joint
+
+                    Model->pushMatrix();
+                        Model->translate(vec3(0.55, 0, 0)); // place at wrist
+                        Model->rotate(wTheta, vec3(0, 0, 1)); // rotate wrist joint
+                        Model->translate(vec3(0.2, 0, 0)); // move to wrist joint
+
+                        Model->scale(vec3(0.35, 0.25, 0.25));
+                        setModel(prog, Model);
+                        sphere->draw(prog);
+                    Model->popMatrix();
+
+                    Model->scale(vec3(0.7, 0.25, 0.25));
+                    setModel(prog, Model);
+                    sphere->draw(prog);
+			  	Model->popMatrix();
+
+			  //Do final scale ONLY to upper arm then draw
+			  //non-uniform scale
+			  Model->scale(vec3(0.8, 0.3, 0.25));
+			  setModel(prog, Model);
+			  sphere->draw(prog);
+			Model->popMatrix();
+
+            // static left arm
+            Model->pushMatrix();
+			  //place at shoulder
+			  Model->translate(vec3(-0.8, 0.8, 0));
+			  //rotate shoulder joint
+			  Model->rotate(3.55, vec3(0, 0, 1));
+			  //move to shoulder joint
+			  Model->translate(vec3(0.8, 0, 0));
+	
+			    //now draw lower arm - this is INCOMPLETE and you will add a 3rd component
+			  	//right now this is in the SAME place as the upper arm
+			  	Model->pushMatrix();
+                    Model->translate(vec3(0.7, 0, 0)); // place at elbow
+                    Model->rotate(2, vec3(0, 0, 1)); // rotate elbow joint
+                    Model->translate(vec3(0.7, 0, 0)); // move to elbow joint
+
+                    Model->pushMatrix();
+                        Model->translate(vec3(0.75, 0, 0)); // place at wrist
+                        Model->rotate(-0.75, vec3(0, 0, 1)); // rotate wrist joint
+                        Model->scale(vec3(0.35, 0.25, 0.25));
+                        setModel(prog, Model);
+                        sphere->draw(prog);
+                    Model->popMatrix();
+
+                    Model->scale(vec3(0.7, 0.25, 0.25));
+                    setModel(prog, Model);
+                    sphere->draw(prog);
+			  	Model->popMatrix();
+
+			  //Do final scale ONLY to upper arm then draw
+			  //non-uniform scale
+			  Model->scale(vec3(0.8, 0.3, 0.25));
+			  setModel(prog, Model);
+			  sphere->draw(prog);
+			Model->popMatrix();
+		
 		Model->popMatrix();
+
+        sTheta = sin(glfwGetTime());
+
+        eTheta = (sin(glfwGetTime()) + 1)/1.5;
+
+        wTheta = sin(4*glfwGetTime())/2;
    	}
 
 	void render() {
@@ -371,7 +459,7 @@ public:
 		prog->bind();
 		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, value_ptr(Projection->topMatrix()));
 		glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(View->topMatrix()));
-		glUniform3f(prog->getUniform("lightPos"), 2.0, 2.0, 2.9);
+		glUniform3f(prog->getUniform("lightPos"), lightTrans, 2.0, 2.9);
 
 		// draw the array of bunnies
 		Model->pushMatrix();
@@ -409,8 +497,8 @@ public:
 		
 		//animation update example
 		sTheta = sin(glfwGetTime());
-		eTheta = std::max(0.0f, (float)sin(glfwGetTime()));
-		hTheta = std::max(0.0f, (float)cos(glfwGetTime()));
+        eTheta = (sin(glfwGetTime()) + 1)/1.5;
+        wTheta = sin(4*glfwGetTime())/2;
 
 		// Pop matrix stacks.
 		Projection->popMatrix();
